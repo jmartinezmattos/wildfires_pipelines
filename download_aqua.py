@@ -52,7 +52,7 @@ def export_modis_aqua_rgb():
     )
 
     task.start()
-    print("Export started… waiting for completion.")
+    print("RGB Export started… waiting for completion.")
 
     success = wait_for_task(task)
 
