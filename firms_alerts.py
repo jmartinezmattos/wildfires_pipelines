@@ -3,9 +3,11 @@ import requests
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import pandas as pd
+import subprocess
 
 load_dotenv(".env")
 EDL_TOKEN = os.getenv("FIRMS_TOKEN")
+BUCKET_NAME = os.getenv("BUCKET_NAME")
 
 sensor_basenames = {
     "MODIS": ["modis-c6.1", "MODIS_C6_1_South_America_MCD14DL_NRT_"],
@@ -28,7 +30,7 @@ def download_file_with_token(url, token, output_path):
                     if chunk:
                         f.write(chunk)
         print(f"File downloaded: {output_path}")
-        return True
+        return output_path
     except Exception as e:
         print("Error in download:", e)
         return False
@@ -83,20 +85,56 @@ def create_kml_from_csv(df, output_file):
 
     print(f"KML generated correctly: {output_file}")
 
-def firms_alerts():
+def firms_alerts(copy_to_gcs=False):
+
+    output_dir = "data/firms_alerts_nrt"
+    os.makedirs(output_dir, exist_ok=True)
+
+    local_files = []
+
     today = datetime.utcnow()
     yesterday = today - timedelta(days=1)
     today_url, today_output_file = get_url_and_filename(today, "MODIS")
     yesterday_url, yesterday_output_file = get_url_and_filename(yesterday, "MODIS")
 
+    today_output_file = os.path.join(output_dir, today_output_file)
+    yesterday_output_file = os.path.join(output_dir, yesterday_output_file)
+
     download_file_with_token(today_url, EDL_TOKEN, today_output_file)
     download_file_with_token(yesterday_url, EDL_TOKEN, yesterday_output_file)
 
-    uru_df_yesterday = filter_uruguay_coordinates(yesterday_output_file, os.path.basename(yesterday_output_file).replace(".txt", "_Uruguay.csv"))
-    uru_df_today = filter_uruguay_coordinates(today_output_file, os.path.basename(today_output_file).replace(".txt", "_Uruguay.csv"))
+    local_files.extend([today_output_file, yesterday_output_file])
 
-    create_kml_from_csv(uru_df_yesterday, os.path.basename(yesterday_output_file).replace(".txt", "_Uruguay.kml"))
-    create_kml_from_csv(uru_df_today, os.path.basename(today_output_file).replace(".txt", "_Uruguay.kml"))
+    yesterday_output_file_uru = yesterday_output_file.replace(".txt", "_Uruguay.csv")
+    today_output_file_uru = today_output_file.replace(".txt", "_Uruguay.csv")
+
+    uru_df_yesterday = filter_uruguay_coordinates(yesterday_output_file, yesterday_output_file_uru)
+    uru_df_today = filter_uruguay_coordinates(today_output_file, today_output_file_uru)
+
+    local_files.extend([yesterday_output_file_uru, today_output_file_uru])
+
+    yesterday_kml_path = yesterday_output_file.replace(".txt", "_Uruguay.kml")
+    today_kml_path = today_output_file.replace(".txt", "_Uruguay.kml")
+
+    create_kml_from_csv(uru_df_yesterday, yesterday_kml_path)
+    create_kml_from_csv(uru_df_today, today_kml_path)
+
+    local_files.extend([yesterday_kml_path, today_kml_path])
+
+    if copy_to_gcs:
+        gcs_dir = f"gs://{BUCKET_NAME}/firms_alerts/"
+
+        for file_path in local_files:
+
+            cmd = ["gsutil", "cp", file_path, gcs_dir]
+            print("Running command: ", " ".join(cmd))
+            gcs_path = gcs_dir + file_path
+            try:
+                subprocess.run(cmd, check=True, shell=True)
+                print(f"File uploaded: {gcs_path}")
+            except subprocess.CalledProcessError as e:
+                print(f"Error uploading {gcs_path}: {e}")
+
 
 if __name__ == "__main__":
-    firms_alerts()
+    firms_alerts(copy_to_gcs=True)
