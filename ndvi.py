@@ -1,12 +1,16 @@
+import os
 import ee
 import datetime
+from dotenv import load_dotenv
+from utils import wait_for_task, uruguay
 
 ee.Authenticate()
 ee.Initialize(project="cellular-retina-276416")
 
+load_dotenv(".env")
+BUCKET = os.getenv("BUCKET_NAME")
+
 def ndvi():
-    gaul = ee.FeatureCollection("FAO/GAUL/2015/level0")
-    uruguay = gaul.filter(ee.Filter.eq("ADM0_NAME", "Uruguay")).geometry()
 
     end = datetime.date.today()
     start = end - datetime.timedelta(days=7)
@@ -30,7 +34,7 @@ def ndvi():
     task = ee.batch.Export.image.toCloudStorage(
         image=ndvi,
         description='NDVI_Uruguay_Export',
-        bucket='wildfires_data_um',            
+        bucket=BUCKET,            
         fileNamePrefix=file_name,
         region=uruguay.bounds(),
         scale=500,
@@ -40,7 +44,15 @@ def ndvi():
     )
 
     task.start()
-    print("Export started to GCS bucket 'wildfires_data_um'")
+    print("NDVI export started… waiting for completion.")
+    success = wait_for_task(task)
+
+    if not success:
+        return None
+
+    gcs_path = f"gs://{BUCKET}/{file_name}.tif"
+    print("Export completed:", gcs_path)
+    return gcs_path
 
 if __name__ == "__main__":
     ndvi()

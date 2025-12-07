@@ -1,11 +1,16 @@
+import os
 import ee
 import datetime
 from gee_fwi.FWI import FWICalculator
 from gee_fwi.FWIInputs import FWI_GFS_GSMAP
-import requests
+from dotenv import load_dotenv
+from utils import wait_for_task, uruguay
 
 ee.Authenticate()
 ee.Initialize(project="cellular-retina-276416")
+
+load_dotenv(".env")
+BUCKET = os.getenv("BUCKET_NAME")
 
 def fwi():
 
@@ -19,9 +24,6 @@ def fwi():
     calculator.set_previous_codes()
     fwi = calculator.compute()
 
-    uruguay = ee.FeatureCollection('FAO/GAUL/2015/level0') \
-        .filter(ee.Filter.eq('ADM0_NAME', 'Uruguay'))
-
     fwi_uruguay = fwi.clip(uruguay)
 
     # Obtener URL de descarga del GeoTIFF
@@ -33,13 +35,14 @@ def fwi():
     #     'fileFormat': 'GeoTIFF'
     # })
 
+    file_name = 'fwi/FWI_Uruguay_' + obs.strftime('%Y%m%d')
 
     task = ee.batch.Export.image.toCloudStorage(
         image=fwi_uruguay,
         description='FWI_Uruguay_Export',
-        bucket='wildfires_data_um',
+        bucket=BUCKET,
         fileNamePrefix='fwi/FWI_Uruguay_' + obs.strftime('%Y%m%d'),
-        region=uruguay.geometry().bounds().getInfo()['coordinates'],
+        region=uruguay.bounds(),
         scale=1000,
         crs='EPSG:4326',
         fileFormat='GeoTIFF',
@@ -47,6 +50,16 @@ def fwi():
     )
 
     task.start()
+
+    print("FWI export started… waiting for completion.")
+    success = wait_for_task(task)
+
+    if not success:
+        return None
+
+    gcs_path = f"gs://{BUCKET}/{file_name}.tif"
+    print("Export completed:", gcs_path)
+    return gcs_path
 
 if __name__ == "__main__":
     fwi()

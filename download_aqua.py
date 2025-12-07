@@ -1,17 +1,18 @@
+import os
 import ee
 import datetime
 import requests
-from utils import wait_for_task
+from dotenv import load_dotenv
+from utils import wait_for_task, uruguay
 
 ee.Authenticate()
 ee.Initialize(project="cellular-retina-276416")
 
+load_dotenv(".env")
+BUCKET = os.getenv("BUCKET_NAME")
 
 def export_modis_aqua_rgb():
-    # --- Uruguay geometry ---
-    gaul = ee.FeatureCollection("FAO/GAUL/2015/level0")
-    uruguay = gaul.filter(ee.Filter.eq("ADM0_NAME", "Uruguay")).geometry()
-
+    
     # --- DATE RANGE: last 30 days ---
     end = datetime.date.today()
     start = end - datetime.timedelta(days=30)
@@ -35,15 +36,13 @@ def export_modis_aqua_rgb():
     # Scale reflectance (MODIS scale factor = 0.0001)
     rgb = image.multiply(0.0001).clip(uruguay)
 
-    # --- Export to GCS ---
-    bucket = "wildfires_data_um"
     today = datetime.datetime.now().strftime("%Y%m%d")
     prefix = f"modis_aqua_rgb/MODIS_AQUA_RGB_Uruguay_{today}"
 
     task = ee.batch.Export.image.toCloudStorage(
         image=rgb,
         description="MODIS_AQUA_RGB_Uruguay",
-        bucket=bucket,
+        bucket=BUCKET,
         fileNamePrefix=prefix,
         region=uruguay.bounds(),
         scale=500,
@@ -60,7 +59,7 @@ def export_modis_aqua_rgb():
     if not success:
         return None
 
-    gcs_path = f"gs://{bucket}/{prefix}.tif"
+    gcs_path = f"gs://{BUCKET}/{prefix}.tif"
     print("Export completed:", gcs_path)
     return gcs_path
 

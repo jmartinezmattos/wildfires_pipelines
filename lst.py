@@ -1,14 +1,17 @@
 #Land Surface Temperature (LST)
+import os
 import ee
 import datetime
-from utils import wait_for_task
+from dotenv import load_dotenv
+from utils import wait_for_task, uruguay
 
 ee.Authenticate()
 ee.Initialize(project="cellular-retina-276416")
 
+load_dotenv(".env")
+BUCKET = os.getenv("BUCKET_NAME")
+
 def download_modis_lst():
-    gaul = ee.FeatureCollection("FAO/GAUL/2015/level0")
-    uruguay = gaul.filter(ee.Filter.eq("ADM0_NAME", "Uruguay")).geometry()
 
     # --- DATE RANGE: LAST 1 DAY ---
     end = datetime.date.today()
@@ -34,14 +37,13 @@ def download_modis_lst():
 
     lst_clipped = lst_day.clip(uruguay)
 
-    bucket = "wildfires_data_um"
     today = datetime.datetime.now().strftime("%Y%m%d")
     prefix = f"lst/MODIS_LST_Uruguay_{today}"
 
     task = ee.batch.Export.image.toCloudStorage(
         image=lst_clipped,
         description="MODIS_LST_Uruguay",
-        bucket=bucket,
+        bucket=BUCKET,
         fileNamePrefix=prefix,
         region=uruguay.bounds(),
         scale=1000,
@@ -58,7 +60,7 @@ def download_modis_lst():
     if not success:
         return None
 
-    gcs_path = f"gs://{bucket}/{prefix}.tif"
+    gcs_path = f"gs://{BUCKET}/{prefix}.tif"
     print("Export completed:", gcs_path)
     return gcs_path
 
