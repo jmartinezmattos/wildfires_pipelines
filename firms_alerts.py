@@ -9,8 +9,8 @@ EDL_TOKEN = os.getenv("FIRMS_TOKEN")
 
 sensor_basenames = {
     "MODIS": ["modis-c6.1", "MODIS_C6_1_South_America_MCD14DL_NRT_"],
-    "NOAA20": "J1_VIIRS_C2_South_America_VJ114IMGTDL_NRT_",
-    "NOAA21": "J2_VIIRS_C2_South_America_VJ214IMGTDL_NRT_",
+    "NOAA20": ["noaa-20-viirs-c2", "J1_VIIRS_C2_South_America_VJ114IMGTDL_NRT_"],
+    "NOAA21": ["noaa-21-viirs-c2","J2_VIIRS_C2_South_America_VJ214IMGTDL_NRT_"],
     "SUOMI": ["suomi-npp-viirs-c2", "SUOMI_VIIRS_C2_South_America_VNP14IMGTDL_NRT_"],
 }
 
