@@ -1,23 +1,10 @@
 #Land Surface Temperature (LST)
 import ee
 import datetime
-import time
+from utils import wait_for_task
 
 ee.Authenticate()
 ee.Initialize(project="cellular-retina-276416")
-
-def wait_for_task(task, poll=10):
-    while True:
-        status = task.status()
-        state = status["state"]
-
-        if state == "COMPLETED":
-            return True
-        elif state in ["FAILED", "CANCELLED"]:
-            print("Task failed:", status.get("error_message"))
-            return False
-
-        time.sleep(poll)
 
 def download_modis_lst():
     gaul = ee.FeatureCollection("FAO/GAUL/2015/level0")
