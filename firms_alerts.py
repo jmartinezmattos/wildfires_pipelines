@@ -21,7 +21,7 @@ def download_file_with_token(url, token, output_path):
     try:
         with requests.get(url, headers=headers, stream=True) as r:
             if r.status_code == 404:
-                return False  # archivo no disponible
+                return False
             r.raise_for_status()
             with open(output_path, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=8192):
@@ -81,20 +81,22 @@ def create_kml_from_csv(df, output_file):
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(kml_header + placemarks + kml_footer)
 
-    print(f"KML generado correctamente: {output_file}")
+    print(f"KML generated correctly: {output_file}")
 
 def firms_alerts():
     today = datetime.utcnow()
-    url, output_file = get_url_and_filename(today, "MODIS")
+    yesterday = today - timedelta(days=1)
+    today_url, today_output_file = get_url_and_filename(today, "MODIS")
+    yesterday_url, yesterday_output_file = get_url_and_filename(yesterday, "MODIS")
 
-    if not download_file_with_token(url, EDL_TOKEN, output_file):
-        yesterday = today - timedelta(days=1)
-        url, output_file = get_url_and_filename(yesterday, "MODIS")
-        download_file_with_token(url, EDL_TOKEN, output_file)
+    download_file_with_token(today_url, EDL_TOKEN, today_output_file)
+    download_file_with_token(yesterday_url, EDL_TOKEN, yesterday_output_file)
 
-    uru_df = filter_uruguay_coordinates(output_file, os.path.basename(output_file).replace(".txt", "_Uruguay.csv"))
+    uru_df_yesterday = filter_uruguay_coordinates(yesterday_output_file, os.path.basename(yesterday_output_file).replace(".txt", "_Uruguay.csv"))
+    uru_df_today = filter_uruguay_coordinates(today_output_file, os.path.basename(today_output_file).replace(".txt", "_Uruguay.csv"))
 
-    create_kml_from_csv(uru_df, os.path.basename(output_file).replace(".txt", "_Uruguay.kml"))
+    create_kml_from_csv(uru_df_yesterday, os.path.basename(yesterday_output_file).replace(".txt", "_Uruguay.kml"))
+    create_kml_from_csv(uru_df_today, os.path.basename(today_output_file).replace(".txt", "_Uruguay.kml"))
 
 if __name__ == "__main__":
     firms_alerts()
