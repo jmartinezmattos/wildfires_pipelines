@@ -23,6 +23,7 @@ def download_file_with_token(url, token, output_path):
     try:
         with requests.get(url, headers=headers, stream=True) as r:
             if r.status_code == 404:
+                print(f"File not found at URL: {url}")
                 return False
             r.raise_for_status()
             with open(output_path, 'wb') as f:
@@ -85,7 +86,7 @@ def create_kml_from_csv(df, output_file):
 
     print(f"KML generated correctly: {output_file}")
 
-def firms_alerts(copy_to_gcs=False):
+def firms_alerts(copy_to_gcs=False, delete_local=False):
 
     output_dir = "data/firms_alerts_nrt"
     os.makedirs(output_dir, exist_ok=True)
@@ -97,29 +98,28 @@ def firms_alerts(copy_to_gcs=False):
     today_url, today_output_file = get_url_and_filename(today, "MODIS")
     yesterday_url, yesterday_output_file = get_url_and_filename(yesterday, "MODIS")
 
-    today_output_file = os.path.join(output_dir, today_output_file)
-    yesterday_output_file = os.path.join(output_dir, yesterday_output_file)
+    
+    yesterday_output_file = f"{output_dir}/{yesterday_output_file}"
+    yesterday_output_file = download_file_with_token(yesterday_url, EDL_TOKEN, yesterday_output_file)
 
-    download_file_with_token(today_url, EDL_TOKEN, today_output_file)
-    download_file_with_token(yesterday_url, EDL_TOKEN, yesterday_output_file)
+    if yesterday_output_file:
+        yesterday_output_file_uru = yesterday_output_file.replace(".txt", "_Uruguay.csv")
+        uru_df_yesterday = filter_uruguay_coordinates(yesterday_output_file, yesterday_output_file_uru)
+        yesterday_kml_path = yesterday_output_file.replace(".txt", "_Uruguay.kml")
+        create_kml_from_csv(uru_df_yesterday, yesterday_kml_path)
 
-    local_files.extend([today_output_file, yesterday_output_file])
+        local_files.extend([yesterday_output_file, yesterday_output_file_uru, yesterday_kml_path])
 
-    yesterday_output_file_uru = yesterday_output_file.replace(".txt", "_Uruguay.csv")
-    today_output_file_uru = today_output_file.replace(".txt", "_Uruguay.csv")
+    today_output_file = f"{output_dir}/{today_output_file}"
+    today_output_file = download_file_with_token(today_url, EDL_TOKEN, today_output_file)
+    
+    if today_output_file:
+        today_output_file_uru = today_output_file.replace(".txt", "_Uruguay.csv")
+        uru_df_today = filter_uruguay_coordinates(today_output_file, today_output_file_uru)
+        today_kml_path = today_output_file.replace(".txt", "_Uruguay.kml")
+        create_kml_from_csv(uru_df_today, today_kml_path)
 
-    uru_df_yesterday = filter_uruguay_coordinates(yesterday_output_file, yesterday_output_file_uru)
-    uru_df_today = filter_uruguay_coordinates(today_output_file, today_output_file_uru)
-
-    local_files.extend([yesterday_output_file_uru, today_output_file_uru])
-
-    yesterday_kml_path = yesterday_output_file.replace(".txt", "_Uruguay.kml")
-    today_kml_path = today_output_file.replace(".txt", "_Uruguay.kml")
-
-    create_kml_from_csv(uru_df_yesterday, yesterday_kml_path)
-    create_kml_from_csv(uru_df_today, today_kml_path)
-
-    local_files.extend([yesterday_kml_path, today_kml_path])
+        local_files.extend([today_output_file, today_output_file_uru, today_kml_path])
 
     if copy_to_gcs:
         gcs_dir = f"gs://{BUCKET_NAME}/firms_alerts/"
@@ -135,6 +135,10 @@ def firms_alerts(copy_to_gcs=False):
             except subprocess.CalledProcessError as e:
                 print(f"Error uploading {gcs_path}: {e}")
 
+            if delete_local:
+                os.remove(file_path)
+                print(f"Local file deleted: {file_path}")
+
 
 if __name__ == "__main__":
-    firms_alerts(copy_to_gcs=True)
+    firms_alerts(copy_to_gcs=True, delete_local=True)
