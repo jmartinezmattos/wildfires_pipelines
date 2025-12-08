@@ -28,7 +28,7 @@ if __name__ == "__main__":
     gcs_paths.append(aqua_rgb_path)
     print("MODIS AQUA RGB exported to:", aqua_rgb_path)
     
-    alerts_path = firms_alerts(copy_to_gcs=True)
+    alerts_path = firms_alerts(copy_to_gcs=True, delete_local=True)
 
     print("All exports completed.")
 
