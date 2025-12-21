@@ -154,10 +154,10 @@ def download_latest_sentinel2_rgb(square, tile_num, start_date, end_date):
 
     url = image.getThumbURL({
         "region": square,
-        "dimensions": 512,
+        "dimensions": 1024,
         "format": "png",
         "min": 0,
-        "max": 3000
+        "max": 6000
     })
 
     response = requests.get(url)
