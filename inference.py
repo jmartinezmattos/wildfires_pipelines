@@ -3,6 +3,7 @@ import os
 import csv
 import torch
 import shutil
+import argparse
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
@@ -18,7 +19,6 @@ DATA_DIR = "./data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
 MODEL_PATH = "./models/efficientnet"
-IMAGES_DIR = f"{DATA_DIR}/uruguay_tiles"
 
 CSV_PATH = f"{DATA_DIR}/predictions_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
 CSV_FIRE_PATH = f"{DATA_DIR}/predictions_fire_only_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
@@ -36,6 +36,16 @@ FIELDNAMES = [
     "prob_no_fire",
 ]
 
+parser = argparse.ArgumentParser(description="Run fire classification on images.")
+parser.add_argument(
+    "--images_dir",
+    type=str,
+    default=f"{DATA_DIR}/uruguay_tiles",
+    help="Path to the directory containing images to process (default: ./data/uruguay_tiles)"
+)
+args = parser.parse_args()
+
+IMAGES_DIR = args.images_dir
 
 # =========================
 # UTILIDADES
