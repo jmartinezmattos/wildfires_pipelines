@@ -4,3 +4,6 @@ gee_fwi
 dotenv
 tqdm
 numpy
+torch
+transformers
+Pillow
