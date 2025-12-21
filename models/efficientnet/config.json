@@ -1,0 +1,89 @@
+{
+  "architectures": [
+    "EfficientNetForImageClassification"
+  ],
+  "batch_norm_eps": 0.001,
+  "batch_norm_momentum": 0.99,
+  "depth_coefficient": 1.8,
+  "depth_divisor": 8,
+  "depthwise_padding": [
+    6
+  ],
+  "drop_connect_rate": 0.2,
+  "dropout_rate": 0.4,
+  "dtype": "float32",
+  "expand_ratios": [
+    1,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6
+  ],
+  "hidden_act": "swish",
+  "hidden_dim": 1792,
+  "id2label": {
+    "0": "Fire",
+    "1": "No_Fire"
+  },
+  "image_size": 380,
+  "in_channels": [
+    32,
+    16,
+    24,
+    40,
+    80,
+    112,
+    192
+  ],
+  "initializer_range": 0.02,
+  "kernel_sizes": [
+    3,
+    3,
+    5,
+    3,
+    5,
+    5,
+    3
+  ],
+  "label2id": {
+    "Fire": 0,
+    "No_Fire": 1
+  },
+  "model_type": "efficientnet",
+  "num_block_repeats": [
+    1,
+    2,
+    2,
+    3,
+    3,
+    4,
+    1
+  ],
+  "num_channels": 3,
+  "num_hidden_layers": 64,
+  "out_channels": [
+    16,
+    24,
+    40,
+    80,
+    112,
+    192,
+    320
+  ],
+  "pooling_type": "mean",
+  "problem_type": "single_label_classification",
+  "squeeze_expansion_ratio": 0.25,
+  "strides": [
+    1,
+    2,
+    2,
+    2,
+    1,
+    2,
+    1
+  ],
+  "transformers_version": "4.57.3",
+  "width_coefficient": 1.4
+}
