@@ -143,6 +143,7 @@ for batch_files in tqdm(list(chunks(image_files, BATCH_SIZE))):
         continue
 
     inputs = processor(images=images, return_tensors="pt")
+    inputs = {k: v.to(DEVICE) for k, v in inputs.items()}
 
     with torch.no_grad():
         outputs = model(**inputs)
