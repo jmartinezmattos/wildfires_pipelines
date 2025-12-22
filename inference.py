@@ -26,7 +26,7 @@ OUTPUT_FIRE_IMAGES_DIR = f"{DATA_DIR}/predictions_fire_images_{datetime.utcnow()
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-BATCH_SIZE = 8  # recomendado para CPU
+BATCH_SIZE = 8 if DEVICE == "cpu" else 32
 
 FIELDNAMES = [
     "filename",
