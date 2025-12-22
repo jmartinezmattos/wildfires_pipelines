@@ -12,7 +12,7 @@ def delete_local_files(paths):
             print(f"Path not found: {path}")
             continue
 
-        if os.path.isfile(path):
+        elif os.path.isfile(path):
             os.remove(path)
             print(f"Deleted file: {path}")
 
@@ -22,7 +22,7 @@ def delete_local_files(paths):
 
 def inference_pipeline():
 
-    tiles_path=get_uruguay_tiles(max_tiles=50)
+    tiles_path=get_uruguay_tiles()
     
     inferences_path = inference(images_dir=tiles_path)
 
