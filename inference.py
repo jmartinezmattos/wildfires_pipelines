@@ -147,7 +147,7 @@ for batch_files in tqdm(list(chunks(image_files, BATCH_SIZE))):
 
     with torch.no_grad():
         outputs = model(**inputs)
-        probs = torch.softmax(outputs.logits, dim=-1).numpy()
+        probs = torch.softmax(outputs.logits, dim=-1).cpu().numpy()
 
     for fname, p in zip(valid_fnames, probs):
         pred_idx = int(np.argmax(p))
