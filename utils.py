@@ -26,7 +26,7 @@ def move_data_from_gcs_to_local(bucket_path_lists, local_dir):
     os.makedirs(local_dir, exist_ok=True)
     
     for gcs_path in bucket_path_lists:
-        cmd = ["gsutil", "cp", gcs_path, local_dir]
+        cmd = ["gsutil", "-m" , "cp", "-r", gcs_path, local_dir]
         
         try:
             subprocess.run(cmd, check=True, shell=True)
@@ -34,3 +34,13 @@ def move_data_from_gcs_to_local(bucket_path_lists, local_dir):
         except subprocess.CalledProcessError as e:
             print(f"Error downloading {gcs_path}: {e}")
 
+def move_data_from_local_to_gcs(local_path, gcs_bucket_path):
+    cmd = ["gsutil", "-m" , "cp", "-r", local_path, gcs_bucket_path]
+    
+    try:
+        subprocess.run(cmd, check=True, shell=True)
+        print(f"File uploaded: {local_path} to {gcs_bucket_path}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error uploading {local_path}: {e}")
+
+    return gcs_bucket_path + "/" + os.path.basename(local_path)
