@@ -20,9 +20,14 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 MODEL_PATH = "./models/efficientnet"
 
-CSV_PATH = f"{DATA_DIR}/predictions_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
-CSV_FIRE_PATH = f"{DATA_DIR}/predictions_fire_only_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
-OUTPUT_FIRE_IMAGES_DIR = f"{DATA_DIR}/predictions_fire_images_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+date_now = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+
+OUTPUT_FIRE_IMAGES_DIR = f"{DATA_DIR}/predictions_fire_images_{date_now}"
+
+CSV_PATH = f"{OUTPUT_FIRE_IMAGES_DIR}/predictions_{date_now}.csv"
+CSV_FIRE_PATH = f"{OUTPUT_FIRE_IMAGES_DIR}/predictions_fire_only_{date_now}.csv"
+
+os.makedirs(OUTPUT_FIRE_IMAGES_DIR, exist_ok=True)
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -187,8 +192,6 @@ def inference(images_dir=IMAGES_DIR):
     print(f"Total Fire detections: {len(fire_rows)}")
 
     print("Copying Fire images to:", OUTPUT_FIRE_IMAGES_DIR)
-
-    os.makedirs(OUTPUT_FIRE_IMAGES_DIR, exist_ok=True)
 
     for row in fire_rows:
         src_path = os.path.join(images_dir, row["filename"])
