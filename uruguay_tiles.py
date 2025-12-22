@@ -191,7 +191,7 @@ def download_latest_sentinel2_rgb(square, tile_num, start_date, end_date):
         ])
 
 
-if __name__ == "__main__":
+def get_uruguay_tiles(max_tiles=None):
 
     init_csv()
 
@@ -200,7 +200,10 @@ if __name__ == "__main__":
         tiles = generate_uruguay_tiles_parallel()
         save_tiles(tiles)
     else:
-        print("Tiles cargados desde disco.")
+        print("Tiles coordinates loaded from disk.")
+
+    if max_tiles is not None:
+        tiles = tiles[:max_tiles]
 
     print(f"Total de tiles: {len(tiles)}")
 
@@ -212,10 +215,15 @@ if __name__ == "__main__":
         futures = {executor.submit(download_latest_sentinel2_rgb, square, i, start_date, end_date): i
                    for i, square in enumerate(tiles)}
 
-        for future in tqdm(as_completed(futures), total=len(futures), desc="Descargando tiles"):
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Downloading tiles"):
             try:
                 future.result()
             except Exception as e:
                 i = futures[future]
-                print(f"Error descargando tile {i}: {e}")
+                print(f"Error downloading tile {i}: {e}")
+    
+    return DATA_DIR
 
+if __name__ == "__main__":
+
+    get_uruguay_tiles()
