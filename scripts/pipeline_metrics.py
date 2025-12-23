@@ -1,11 +1,11 @@
-from metrics.download_aqua import export_modis_aqua_rgb
-from metrics.fwi import fwi
-from metrics.lst import download_modis_lst
-from metrics.ndvi import ndvi
-from utils import move_data_from_gcs_to_local
 import os
+from metrics.fwi import fwi
+from metrics.ndvi import ndvi
+from metrics.lst import download_modis_lst
+from utils import move_data_from_gcs_to_local
+from metrics.download_aqua import export_modis_aqua_rgb
 
-if __name__ == "__main__":
+def pipeline_metrics():
 
     gcs_paths = []
 
@@ -32,3 +32,7 @@ if __name__ == "__main__":
     local_dir = "data"
     os.makedirs(local_dir, exist_ok=True)
     move_data_from_gcs_to_local(gcs_paths, local_dir)
+
+if __name__ == "__main__":
+
+    pipeline_metrics()
