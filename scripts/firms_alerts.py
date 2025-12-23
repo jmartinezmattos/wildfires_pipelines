@@ -39,6 +39,9 @@ def download_file_with_token(url, token, output_path):
         return False
 
 def get_url_and_filename(date, sensor):
+
+    # date = date - timedelta(days=1) # Adjust date to previous day because FIRMS julian date is wrong in NRT files names in FIRMS website
+
     year = date.year
     julian_day = date.timetuple().tm_yday
     julian_date = f"{year}{julian_day:03d}"
